@@ -6,6 +6,12 @@ namespace UnityEditor.U2D.Aseprite
     [Serializable]
     internal struct AsepriteImporterSettings
     {
+        [SerializeField] bool m_GenerateSpritesFromCells;
+        public bool generateSpritesFromCells
+        {
+            get => m_GenerateSpritesFromCells;
+            set => m_GenerateSpritesFromCells = value;
+        }
         [SerializeField] FileImportModes m_FileImportMode;
         public FileImportModes fileImportMode
         {

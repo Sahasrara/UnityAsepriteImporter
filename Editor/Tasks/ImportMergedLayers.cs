@@ -1,18 +1,17 @@
 using System.Collections.Generic;
 using Unity.Collections;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace UnityEditor.U2D.Aseprite
 {
     internal static class ImportMergedLayers
     {
-        public static void Import(string assetName, ref List<Layer> layers, out List<NativeArray<Color32>> cellBuffers, out List<int2> cellSize)
+        public static void Import(string assetName, ref List<Layer> layers, out List<NativeArray<Color32>> cellBuffers, out List<RectInt> cellRects)
         {
             var cellsPerFrame = CellTasks.GetAllCellsPerFrame(layers);
             var mergedCells = CellTasks.MergeCells(cellsPerFrame, assetName);
 
-            CellTasks.CollectDataFromCells(mergedCells, out cellBuffers, out cellSize);
+            CellTasks.CollectDataFromCells(mergedCells, out cellBuffers, out cellRects);
             UpdateLayerList(mergedCells, assetName, ref layers);
         }
 

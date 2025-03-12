@@ -5,6 +5,7 @@
   "unityRelease": "15f1",
   "displayName": "2D Aseprite Importer",
   "description": "2D Aseprite Importer is a package which enables the import of .aseprite files from the Pixel Art tool Aseprite.",
+  "hideInEditor": false,
   "keywords": [
     "2d",
     "Aseprite",

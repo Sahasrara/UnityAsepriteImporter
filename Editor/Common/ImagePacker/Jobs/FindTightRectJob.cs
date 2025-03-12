@@ -4,7 +4,6 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Jobs;
 using Unity.Burst;
-using Unity.Mathematics;
 
 namespace UnityEditor.U2D.Aseprite.Common
 {
@@ -51,21 +50,21 @@ namespace UnityEditor.U2D.Aseprite.Common
 
         public static unsafe RectInt[] Execute(NativeArray<Color32>[] buffers, int width, int height)
         {
-            return Execute(buffers, new[] { new int2(width, height) });
+            return Execute(buffers, new[] { new RectInt(0, 0, width, height) });
         }
 
-        internal static unsafe RectInt[] Execute(NativeArray<Color32>[] buffers, int2[] size)
+        internal static unsafe RectInt[] Execute(NativeArray<Color32>[] buffers, RectInt[] cellRects)
         {
             var job = new FindTightRectJob();
             job.m_Buffers = new NativeArray<IntPtr>(buffers.Length, Allocator.TempJob);
-            job.m_Width = new NativeArray<int>(size.Length, Allocator.TempJob);
-            job.m_Height = new NativeArray<int>(size.Length, Allocator.TempJob);
+            job.m_Width = new NativeArray<int>(cellRects.Length, Allocator.TempJob);
+            job.m_Height = new NativeArray<int>(cellRects.Length, Allocator.TempJob);
 
             for (var i = 0; i < buffers.Length; ++i)
             {
                 job.m_Buffers[i] = new IntPtr(buffers[i].GetUnsafeReadOnlyPtr());
-                job.m_Width[i] = size[i].x;
-                job.m_Height[i] = size[i].y;
+                job.m_Width[i] = cellRects[i].width;
+                job.m_Height[i] = cellRects[i].height;
             }
 
             job.m_Output = new NativeArray<RectInt>(buffers.Length, Allocator.TempJob);

@@ -126,19 +126,19 @@ namespace UnityEditor.U2D.Aseprite
             return mergedCells;
         }
 
-        public static void CollectDataFromCells(IReadOnlyList<Cell> cells, out List<NativeArray<Color32>> cellBuffers, out List<int2> cellSize)
+        public static void CollectDataFromCells(IReadOnlyList<Cell> cells, out List<NativeArray<Color32>> cellBuffers, out List<RectInt> cellRects)
         {
             cellBuffers = new List<NativeArray<Color32>>();
-            cellSize = new List<int2>();
+            cellRects = new List<RectInt>();
 
             for (var m = 0; m < cells.Count; ++m)
             {
-                var size = cells[m].cellRect.size;
-                if (size.x == 0 || size.y == 0)
+                RectInt rect = cells[m].cellRect;
+                if (rect.size.x == 0 || rect.size.y == 0)
                     continue;
 
                 cellBuffers.Add(cells[m].image);
-                cellSize.Add(new int2(size.x, size.y));
+                cellRects.Add(rect);
             }
         }
 
@@ -148,6 +148,16 @@ namespace UnityEditor.U2D.Aseprite
             {
                 var buffer = imageBuffers[i];
                 TextureTasks.FlipTextureY(ref buffer, cellSize[i]);
+                imageBuffers[i] = buffer;
+            }
+        }
+
+        public static void FlipCellBuffersWithRects(ref List<NativeArray<Color32>> imageBuffers, IReadOnlyList<RectInt> cellRects)
+        {
+            for (var i = 0; i < imageBuffers.Count; ++i)
+            {
+                var buffer = imageBuffers[i];
+                TextureTasks.FlipTextureY(ref buffer, new int2(cellRects[i].size.x, cellRects[i].size.y));
                 imageBuffers[i] = buffer;
             }
         }

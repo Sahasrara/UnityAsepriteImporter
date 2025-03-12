@@ -92,26 +92,27 @@ namespace UnityEditor.U2D.Aseprite
                 gameObject.AddComponent<UnityEngine.Rendering.Universal.ShadowCaster2D>();
 #endif
 
-            if (importSettings.defaultPivotSpace == PivotSpaces.Canvas)
-                gameObject.transform.localPosition = Vector3.zero;
-            else
-            {
-                var cellRect = firstCell.cellRect;
-                var position = new Vector3(cellRect.x, cellRect.y, 0f);
+            gameObject.transform.localPosition = Vector3.zero;
+            // if (importSettings.defaultPivotSpace == PivotSpaces.Canvas)
+            //     gameObject.transform.localPosition = Vector3.zero;
+            // else
+            // {
+            //     var cellRect = firstCell.cellRect;
+            //     var position = new Vector3(cellRect.x, cellRect.y, 0f);
 
-                var pivot = sprite.pivot;
-                position.x += pivot.x;
-                position.y += pivot.y;
+            //     var pivot = sprite.pivot;
+            //     position.x += pivot.x;
+            //     position.y += pivot.y;
 
-                var globalPivot = ImportUtilities.PivotAlignmentToVector(importSettings.defaultPivotAlignment);
-                position.x -= (canvasSize.x * globalPivot.x);
-                position.y -= (canvasSize.y * globalPivot.y);
+            //     var globalPivot = ImportUtilities.PivotAlignmentToVector(importSettings.defaultPivotAlignment);
+            //     position.x -= (canvasSize.x * globalPivot.x);
+            //     position.y -= (canvasSize.y * globalPivot.y);
 
-                position.x /= sprite.pixelsPerUnit;
-                position.y /= sprite.pixelsPerUnit;
+            //     position.x /= sprite.pixelsPerUnit;
+            //     position.y /= sprite.pixelsPerUnit;
 
-                gameObject.transform.localPosition = position;
-            }
+            //     gameObject.transform.localPosition = position;
+            // }
         }
     }
 }

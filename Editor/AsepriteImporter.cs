@@ -80,6 +80,7 @@ namespace UnityEditor.U2D.Aseprite
         AsepriteImporterSettings m_AsepriteImporterSettings = new AsepriteImporterSettings()
         {
             fileImportMode = FileImportModes.AnimatedSprite,
+            generateSpritesFromCells = true,
             importHiddenLayers = false,
             layerImportMode = LayerImportModes.MergeFrame,
             defaultPivotAlignment = SpriteAlignment.BottomCenter,
@@ -207,12 +208,12 @@ namespace UnityEditor.U2D.Aseprite
                 
                 var layersFromFile = FetchLayersFromFile(asepriteFile, m_CanvasSize, includeHiddenLayers, layerImportMode == LayerImportModes.MergeFrame);
 
-                FetchImageDataFromLayers(ref layersFromFile, out var imageBuffers, out var imageSizes);
+                FetchImageDataFromLayers(ref layersFromFile, out List<NativeArray<Color32>> imageBuffers, out List<RectInt> cellRects);
 
                 var mosaicPad = m_AsepriteImporterSettings.mosaicPadding;
                 var spritePad = m_AsepriteImporterSettings.fileImportMode == FileImportModes.AnimatedSprite ? m_AsepriteImporterSettings.spritePadding : 0;
                 var requireSquarePotTexture = IsRequiringSquarePotTexture(ctx);
-                ImagePacker.Pack(imageBuffers.ToArray(), imageSizes.ToArray(), (int)mosaicPad, spritePad, requireSquarePotTexture, out var outputImageBuffer, out var packedTextureWidth, out var packedTextureHeight, out var spriteRects, out var uvTransforms);
+                ImagePacker.Pack(m_CanvasSize, imageBuffers.ToArray(), cellRects.ToArray(), (int)mosaicPad, spritePad, requireSquarePotTexture, out var outputImageBuffer, out var packedTextureWidth, out var packedTextureHeight, out var spriteRects, out var uvTransforms);
 
                 var packOffsets = new Vector2Int[spriteRects.Length];
                 for (var i = 0; i < packOffsets.Length; ++i)
@@ -222,7 +223,7 @@ namespace UnityEditor.U2D.Aseprite
                 }
 
                 SpriteMetaData[] spriteImportData;
-                if (m_AsepriteImporterSettings.fileImportMode == FileImportModes.SpriteSheet)
+                if (m_AsepriteImporterSettings.fileImportMode == FileImportModes.SpriteSheet && !m_AsepriteImporterSettings.generateSpritesFromCells)
                     spriteImportData = GetSpriteImportData().ToArray();
                 else
                 {
@@ -483,20 +484,20 @@ namespace UnityEditor.U2D.Aseprite
             }
         }
 
-        void FetchImageDataFromLayers(ref List<Layer> newLayers, out List<NativeArray<Color32>> imageBuffers, out List<int2> imageSizes)
+        void FetchImageDataFromLayers(ref List<Layer> newLayers, out List<NativeArray<Color32>> imageBuffers, out List<RectInt> cellRects)
         {
             if (layerImportMode == LayerImportModes.IndividualLayers)
             {
                 m_AsepriteLayers = UpdateLayers(newLayers, m_AsepriteLayers, true);
 
                 CellTasks.GetCellsFromLayers(m_AsepriteLayers, out var cells);
-                CellTasks.CollectDataFromCells(cells, out imageBuffers, out imageSizes);
-                CellTasks.FlipCellBuffers(ref imageBuffers, imageSizes);
+                CellTasks.CollectDataFromCells(cells, out imageBuffers, out cellRects);
+                CellTasks.FlipCellBuffersWithRects(ref imageBuffers, cellRects);
             }
             else
             {
                 var assetName = System.IO.Path.GetFileNameWithoutExtension(assetPath);
-                ImportMergedLayers.Import(assetName, ref newLayers, out imageBuffers, out imageSizes);
+                ImportMergedLayers.Import(assetName, ref newLayers, out imageBuffers, out cellRects);
 
                 // Update layers after merged, since merged import creates new layers.
                 // The new layers should be compared and merged together with the ones existing in the meta file.

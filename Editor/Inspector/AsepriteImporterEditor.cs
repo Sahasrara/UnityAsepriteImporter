@@ -53,7 +53,7 @@ namespace UnityEditor.U2D.Aseprite
         SerializedProperty m_WrapW;
         SerializedProperty m_ConvertToNormalMap;
         SerializedProperty m_PlatformSettingsArrProp;
-
+        SerializedProperty m_GenerateSpritesFromCells;
         SerializedProperty m_FileImportMode;
         SerializedProperty m_ImportHiddenLayers;
         SerializedProperty m_LayerImportMode;
@@ -166,6 +166,7 @@ namespace UnityEditor.U2D.Aseprite
             m_PlatformSettingsArrProp = extraDataSerializedObject.FindProperty("platformSettings");
 
             var asepriteImporterSettings = serializedObject.FindProperty("m_AsepriteImporterSettings");
+            m_GenerateSpritesFromCells = asepriteImporterSettings.FindPropertyRelative("m_GenerateSpritesFromCells");
             m_FileImportMode = asepriteImporterSettings.FindPropertyRelative("m_FileImportMode");
             m_ImportHiddenLayers = asepriteImporterSettings.FindPropertyRelative("m_ImportHiddenLayers");
             m_LayerImportMode = asepriteImporterSettings.FindPropertyRelative("m_LayerImportMode");
@@ -252,6 +253,22 @@ namespace UnityEditor.U2D.Aseprite
             };
             importModeField.Bind(serializedObject);
             foldOut.Add(importModeField);
+
+            var generateSpritesFromCells = new PropertyField(m_GenerateSpritesFromCells, styles.generateSpritesFromCells.text)
+            {
+                tooltip = styles.generateSpritesFromCells.tooltip
+            };
+            generateSpritesFromCells.Bind(serializedObject);
+            foldOut.Add(generateSpritesFromCells);
+            generateSpritesFromCells.schedule.Execute(() =>
+            {
+                var shouldShow = fileImportMode == FileImportModes.SpriteSheet;
+                if (generateSpritesFromCells.visible != shouldShow)
+                {
+                    generateSpritesFromCells.visible = shouldShow;
+                    generateSpritesFromCells.EnableInClassList(k_HiddenElementUssClass, !shouldShow);
+                }
+            }).Every(100);
 
             var ppuField = new PropertyField(m_SpritePixelsToUnits, styles.spritePixelsPerUnit.text)
             {
@@ -372,7 +389,7 @@ namespace UnityEditor.U2D.Aseprite
             pivotSpaceField.Bind(serializedObject);
             pivotSpaceField.schedule.Execute(() =>
             {
-                var shouldShow = fileImportMode == FileImportModes.AnimatedSprite;
+                var shouldShow = fileImportMode == FileImportModes.AnimatedSprite || m_GenerateSpritesFromCells.boolValue;
                 if (pivotSpaceField.visible != shouldShow)
                 {
                     pivotSpaceField.visible = shouldShow;
@@ -394,7 +411,7 @@ namespace UnityEditor.U2D.Aseprite
             pivotAlignmentPopup.AddToClassList(k_BaseFieldAlignedUssClass);
             pivotAlignmentPopup.schedule.Execute(() =>
             {
-                var shouldShow = fileImportMode == FileImportModes.AnimatedSprite;
+                var shouldShow = fileImportMode == FileImportModes.AnimatedSprite || m_GenerateSpritesFromCells.boolValue;
                 if (pivotAlignmentPopup.visible != shouldShow)
                 {
                     pivotAlignmentPopup.visible = shouldShow;
@@ -443,7 +460,7 @@ namespace UnityEditor.U2D.Aseprite
                     spritePaddingField.EnableInClassList(k_HiddenElementUssClass, !isShowing);
                 }
             }).Every(100);
-            foldOut.Add(spritePaddingField);
+            // foldOut.Add(spritePaddingField);
 
             var paddingElement = new VisualElement()
             {
@@ -1439,7 +1456,7 @@ namespace UnityEditor.U2D.Aseprite
                 L10n.Tr("Full Rect"),
                 L10n.Tr("Tight"),
             };
-
+            public readonly GUIContent generateSpritesFromCells = new("Generate Sprites from Cells", "Generates sprites from the Aseprite cell information.");
             public readonly GUIContent fileImportMode = new("Import Mode", "How the file should be imported.");
             public readonly GUIContent spritePixelsPerUnit = new("Pixels Per Unit", "How many pixels in the sprite correspond to one unit in the world.");
             public readonly GUIContent spriteMeshType = new("Mesh Type", "Type of sprite mesh to generate.");
